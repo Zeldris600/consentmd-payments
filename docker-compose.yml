@@ -1,0 +1,61 @@
+# Production — Neon Postgres via .env + Redis container
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: consentmd-payments
+    restart: unless-stopped
+    ports:
+      - '${PORT:-3001}:${PORT:-3001}'
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: PROD
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - consentmd-payments-network
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget -qO- "http://127.0.0.1:$${PORT:-3001}/api/health" || exit 1',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  redis:
+    image: redis:7-alpine
+    container_name: consentmd-payments-redis
+    restart: unless-stopped
+    command: >
+      sh -c "redis-server
+      ${REDIS_PASSWORD:+--requirepass $REDIS_PASSWORD}
+      --appendonly yes"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'redis-cli ${REDIS_PASSWORD:+-a $REDIS_PASSWORD} ping | grep -q PONG',
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - consentmd-payments-network
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  consentmd-payments-network:
+    driver: bridge
