@@ -3,6 +3,7 @@
 How other ConsentMD applications (frontend, `consentmd-node-backend`, internal services) integrate with the payments microservice.
 
 **Local setup:** see [LOCAL_DEVELOPMENT.md](./LOCAL_DEVELOPMENT.md)  
+**API reference (share with integrators):** [API_REFERENCE.md](./API_REFERENCE.md)  
 **Interactive API:** `{BASE_URL}/api/docs` (Swagger)
 
 ---
@@ -64,8 +65,8 @@ Prices resolve by Stripe **lookup_key** (`consentmd_starter`, `consentmd_pro`, `
 | Environment | Example |
 |-------------|---------|
 | Local | `http://localhost:3001` |
-| Staging | `https://payments.staging.consentmd.example` |
-| Production | `https://payments.consentmd.example` |
+| Staging | `https://orvix.staging.consentmd.ai` |
+| Production | `https://orvix.consentmd.ai` |
 
 All routes are under the `/api` prefix.
 

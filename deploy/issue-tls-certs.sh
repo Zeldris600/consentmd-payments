@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# Obtain Let's Encrypt certs (webroot) and enable HTTPS in nginx.
-# Requires DNS A records → this VM and port 80 reachable from the internet.
 set -euo pipefail
 
 APP_ROOT="${APP_ROOT:-/opt/consentmd-payments}"
@@ -15,7 +13,6 @@ fi
 
 $SUDO apt-get update -y
 $SUDO apt-get install -y certbot
-
 $SUDO mkdir -p "${WEBROOT}"
 $SUDO chmod 755 "${WEBROOT}"
 
@@ -29,18 +26,17 @@ issue_one() {
     --agree-tos \
     --non-interactive \
     --keep-until-expiring \
-    --cert-name "${domain}"
+    --cert-name "${domain}" || {
+    echo "Warning: certificate not issued for ${domain} (check DNS)." >&2
+    return 0
+  }
 }
 
-issue_one payments.consentmd.com
-issue_one payments.staging.consentmd.com
+issue_one orvix.consentmd.ai
+issue_one orvix.staging.consentmd.ai
 
-cp deploy/nginx/payments-ssl.conf.template deploy/nginx/conf.d/payments-ssl.conf
-cp deploy/nginx/payments.http-redirect.conf deploy/nginx/conf.d/payments.conf
+bash "${APP_ROOT}/deploy/sync-nginx-tls.sh"
 
-$SUDO docker compose -f deploy/docker-compose.server.yml up -d
-$SUDO docker exec consentmd-payments-nginx nginx -s reload
-
-echo "TLS enabled. Verify:"
-echo "  curl -sS https://payments.consentmd.com/api/health"
-echo "  curl -sS https://payments.staging.consentmd.com/api/health"
+echo "Verify:"
+echo "  curl -sS https://orvix.consentmd.ai/api/health"
+echo "  curl -sS https://orvix.staging.consentmd.ai/api/health"

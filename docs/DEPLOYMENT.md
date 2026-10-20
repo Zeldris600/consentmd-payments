@@ -56,8 +56,8 @@ cp .env.staging.example .env.staging
 
 | Host | Environment |
 |------|-------------|
-| `payments.consentmd.com` | Production |
-| `payments.staging.consentmd.com` | Staging |
+| `orvix.consentmd.ai` | Production |
+| `orvix.staging.consentmd.ai` | Staging |
 
 A records → VM external IP:
 
@@ -69,8 +69,8 @@ gcloud compute instances describe consentmd-payments \
 
 Stripe webhook URLs (HTTPS after TLS):
 
-- Prod: `https://payments.consentmd.com/api/webhooks/stripe`
-- Staging: `https://payments.staging.consentmd.com/api/webhooks/stripe`
+- Prod: `https://orvix.consentmd.ai/api/webhooks/stripe`
+- Staging: `https://orvix.staging.consentmd.ai/api/webhooks/stripe`
 
 ## Deploy / update
 
