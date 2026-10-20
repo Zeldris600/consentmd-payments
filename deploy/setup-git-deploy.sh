@@ -44,8 +44,8 @@ fi
 if [[ -d "${APP_ROOT}/.git" ]]; then
   echo "Git repo already present at ${APP_ROOT}; pulling ${BRANCH}."
   cd "${APP_ROOT}"
-  git remote set-url origin "github.com-consentmd-payments:Zeldris600/consentmd-payments.git" || \
-    git remote add origin "github.com-consentmd-payments:Zeldris600/consentmd-payments.git"
+  git remote set-url origin "git@github.com-consentmd-payments:Zeldris600/consentmd-payments.git" || \
+    git remote add origin "git@github.com-consentmd-payments:Zeldris600/consentmd-payments.git"
   git fetch origin "${BRANCH}"
   git checkout "${BRANCH}"
   git pull --ff-only origin "${BRANCH}"
@@ -54,7 +54,7 @@ else
   if [[ -d "${APP_ROOT}" ]]; then
     sudo mv "${APP_ROOT}" "${APP_ROOT}.bak"
   fi
-  git clone --branch "${BRANCH}" "github.com-consentmd-payments:Zeldris600/consentmd-payments.git" "${APP_ROOT}"
+  git clone --branch "${BRANCH}" "git@github.com-consentmd-payments:Zeldris600/consentmd-payments.git" "${APP_ROOT}"
 fi
 
 if [[ -n "${ENV_BACKUP}" ]]; then

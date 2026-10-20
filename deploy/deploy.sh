@@ -7,7 +7,7 @@ BRANCH="${DEPLOY_BRANCH:-dev}"
 
 cd "${APP_ROOT}"
 
-export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -i ${HOME}/.ssh/consentmd_payments_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new}"
+export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -F ${HOME}/.ssh/config -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new}"
 
 git fetch origin "${BRANCH}"
 git checkout "${BRANCH}"
