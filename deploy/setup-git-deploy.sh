@@ -54,6 +54,8 @@ else
   if [[ -d "${APP_ROOT}" ]]; then
     sudo mv "${APP_ROOT}" "${APP_ROOT}.bak"
   fi
+  sudo mkdir -p "${APP_ROOT}"
+  sudo chown "${USER}:${USER}" "${APP_ROOT}"
   git clone --branch "${BRANCH}" "git@github.com-consentmd-payments:Zeldris600/consentmd-payments.git" "${APP_ROOT}"
 fi
 
