@@ -1,0 +1,145 @@
+# VPS stack: nginx reverse proxy + production + staging (each with Redis).
+# From repo root:
+#   docker compose -f deploy/docker-compose.server.yml up -d --build
+name: consentmd-payments-server
+
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: consentmd-payments-nginx
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - /var/www/certbot:/var/www/certbot:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      app-prod:
+        condition: service_healthy
+      app-staging:
+        condition: service_healthy
+    networks:
+      - edge
+      - prod
+      - staging
+
+  app-prod:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: consentmd-payments-prod
+    restart: unless-stopped
+    env_file:
+      - ../.env.prod
+    environment:
+      NODE_ENV: PROD
+      PORT: 3001
+      REDIS_HOST: redis-prod
+      REDIS_PORT: 6379
+    expose:
+      - '3001'
+    depends_on:
+      redis-prod:
+        condition: service_healthy
+    networks:
+      - prod
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget -qO- "http://127.0.0.1:3001/api/health" || exit 1',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  redis-prod:
+    image: redis:7-alpine
+    container_name: consentmd-payments-redis-prod
+    restart: unless-stopped
+    env_file:
+      - ../.env.prod
+    command: >
+      sh -c "redis-server
+      $${REDIS_PASSWORD:+--requirepass $$REDIS_PASSWORD}
+      --appendonly yes"
+    volumes:
+      - redis_prod_data:/data
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'redis-cli $${REDIS_PASSWORD:+-a $$REDIS_PASSWORD} ping | grep -q PONG',
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - prod
+
+  app-staging:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: consentmd-payments-staging
+    restart: unless-stopped
+    env_file:
+      - ../.env.staging
+    environment:
+      NODE_ENV: STAGING
+      PORT: 3002
+      REDIS_HOST: redis-staging
+      REDIS_PORT: 6379
+    expose:
+      - '3002'
+    depends_on:
+      redis-staging:
+        condition: service_healthy
+    networks:
+      - staging
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget -qO- "http://127.0.0.1:3002/api/health" || exit 1',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  redis-staging:
+    image: redis:7-alpine
+    container_name: consentmd-payments-redis-staging
+    restart: unless-stopped
+    env_file:
+      - ../.env.staging
+    command: >
+      sh -c "redis-server
+      $${REDIS_PASSWORD:+--requirepass $$REDIS_PASSWORD}
+      --appendonly yes"
+    volumes:
+      - redis_staging_data:/data
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'redis-cli $${REDIS_PASSWORD:+-a $$REDIS_PASSWORD} ping | grep -q PONG',
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - staging
+
+volumes:
+  redis_prod_data:
+  redis_staging_data:
+
+networks:
+  edge:
+  prod:
+  staging:

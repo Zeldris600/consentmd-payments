@@ -2,12 +2,14 @@ import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
-import * as express from 'express';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { parseCorsOrigins } from './common/utils/cors.util';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { rawBody: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    rawBody: true,
+  });
 
   const configService = app.get(ConfigService);
   const rawCorsOrigin = configService.getOrThrow<string>('CORS_ORIGIN');
@@ -18,7 +20,7 @@ async function bootstrap() {
     origin: corsOrigin,
     credentials: true,
   });
-  app.use(express.urlencoded({ extended: true }));
+  app.useBodyParser('urlencoded', { extended: true });
 
   app.useGlobalPipes(
     new ValidationPipe({
